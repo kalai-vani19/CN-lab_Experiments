@@ -1,0 +1,89 @@
+ChatClient:
+
+import java.io.*;
+import java.net.*;
+
+public class ChatClient {
+    private static final String SERVER_IP = "127.0.0.1"; // Change if needed
+    private static final int PORT = 12345;
+
+    public static void main(String[] args) {
+        try (Socket socket = new Socket(SERVER_IP, PORT)) {
+            System.out.println("Connected to server!");
+            new Thread(() -> receiveMessages(socket)).start();
+
+            BufferedReader consoleReader = new BufferedReader(new InputStreamReader(System.in));
+            PrintWriter writer = new PrintWriter(socket.getOutputStream(), true);
+
+            while (true) {
+                String message = consoleReader.readLine();
+                writer.println(message);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void receiveMessages(Socket socket) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+            String message;
+            while ((message = reader.readLine()) != null) {
+                System.out.println("\nReceived: " + message);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+ChatServer:
+import java.io.*;
+import java.net.*;
+import java.util.*;
+
+public class ChatServer {
+    private static final int PORT = 12345;
+    private static Set<Socket> clients = new HashSet<>();
+
+    public static void main(String[] args) {
+        try (ServerSocket serverSocket = new ServerSocket(PORT)) {
+            System.out.println("Server is listening on port " + PORT);
+
+            while (true) {
+                Socket socket = serverSocket.accept();
+                clients.add(socket);
+                System.out.println("New client connected: " + socket.getInetAddress());
+
+                new Thread(() -> handleClient(socket)).start();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private static void handleClient(Socket socket) {
+        try (BufferedReader reader = new BufferedReader(new InputStreamReader(socket.getInputStream()))) {
+            String message;
+            while ((message = reader.readLine()) != null) {
+                System.out.println("Received: " + message);
+                broadcastMessage(message, socket);
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        } finally {
+            clients.remove(socket);
+        }
+    }
+
+    private static void broadcastMessage(String message, Socket sender) {
+        for (Socket client : clients) {
+            if (client != sender) {
+                try (PrintWriter writer = new PrintWriter(client.getOutputStream(), true)) {
+                    writer.println("Client: " + message);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+    }
+}

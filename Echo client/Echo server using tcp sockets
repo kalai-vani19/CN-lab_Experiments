@@ -1,0 +1,62 @@
+Echo server:
+
+import java.io.*;
+import java.net.*;
+
+public class EchoServerUTF {
+    public static void main(String[] args) {
+        int port = 12345;
+
+        try (ServerSocket serverSocket = new ServerSocket(port)) {
+            System.out.println("Echo Server started...");
+
+            while (true) {
+                Socket clientSocket = serverSocket.accept();
+                System.out.println("Client connected: " + clientSocket.getInetAddress());
+
+                try (DataInputStream in = new DataInputStream(clientSocket.getInputStream());
+                     DataOutputStream out = new DataOutputStream(clientSocket.getOutputStream())) {
+
+                    String message;
+                    while (true) {
+                        message = in.readUTF();
+                        System.out.println("Received: " + message);
+                        out.writeUTF("Echo: " + message);
+                    }
+                } catch (EOFException e) {
+                    System.out.println("Client disconnected.");
+                }
+                clientSocket.close();
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+Echo client:
+import java.io.*;
+import java.net.*;
+
+public class EchoClientUTF {
+    public static void main(String[] args) {
+        String host = "localhost";
+        int port = 12345;
+
+        try (Socket socket = new Socket(host, port);
+             DataInputStream in = new DataInputStream(socket.getInputStream());
+             DataOutputStream out = new DataOutputStream(socket.getOutputStream());
+             BufferedReader userInput = new BufferedReader(new InputStreamReader(System.in))) {
+
+            System.out.println("Connected to Echo Server. Type a message:");
+
+            String message;
+            while ((message = userInput.readLine()) != null) {
+                out.writeUTF(message);
+                System.out.println("Server response: " + in.readUTF());
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}

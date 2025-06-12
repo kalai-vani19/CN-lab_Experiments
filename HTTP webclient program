@@ -1,0 +1,38 @@
+import java.io.*;
+import java.net.*;
+
+public class HttpWebClient {
+    public static void main(String[] args) {
+        try {
+            // Step 1: Define the target website
+            String host = "www.example.com";
+            int port = 80; // HTTP Default Port
+
+            // Step 2: Create a TCP socket connection
+            Socket socket = new Socket(host, port);
+            System.out.println("Connected to " + host);
+
+            // Step 3: Send an HTTP GET request
+            PrintWriter request = new PrintWriter(socket.getOutputStream(), true);
+            request.println("GET / HTTP/1.1");
+            request.println("Host: " + host);
+            request.println("Connection: close");
+            request.println(); // Blank line to indicate end of request
+
+            // Step 4: Read the server response
+            BufferedReader response = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+            String line;
+            while ((line = response.readLine()) != null) {
+                System.out.println(line);
+            }
+
+            // Step 5: Close resources
+            response.close();
+            request.close();
+            socket.close();
+            System.out.println("Connection closed.");
+        } catch (Exception e) {
+            System.out.println("Error: " + e.getMessage());
+        }
+    }
+}

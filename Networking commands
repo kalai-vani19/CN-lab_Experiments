@@ -1,0 +1,15 @@
+ipconfig  
+ipconfig /all  
+ipconfig /release  
+ipconfig /renew  
+ping  
+tracert  
+nslookup  
+netstat  
+netstat -an  
+arp  
+arp -a  
+route  
+route print  
+hostname  
+telnet

@@ -1,0 +1,55 @@
+FILE SENDER:
+
+import java.io.*;
+import java.net.*;
+
+public class FileSender {
+    public static void main(String[] args) {
+        String hostname = "localhost";
+        int port = 5000;
+        File file = new File("file_to_send.txt");
+
+        try (Socket socket = new Socket(hostname, port);
+             FileInputStream fis = new FileInputStream(file);
+             DataOutputStream dos = new DataOutputStream(socket.getOutputStream())) {
+
+            byte[] buffer = new byte[4096];
+            int read;
+            while ((read = fis.read(buffer)) > 0) {
+                dos.write(buffer, 0, read);
+            }
+
+            System.out.println("File sent successfully.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}
+
+FILE RECEIVER:
+import java.io.*;
+import java.net.*;
+
+public class FileReceiver {
+    public static void main(String[] args) {
+        int port = 5000;
+
+        try (ServerSocket serverSocket = new ServerSocket(port);
+             Socket socket = serverSocket.accept();
+             DataInputStream dis = new DataInputStream(socket.getInputStream());
+             FileOutputStream fos = new FileOutputStream("received_file.txt")) {
+
+            System.out.println("Waiting for file...");
+
+            byte[] buffer = new byte[4096];
+            int read;
+            while ((read = dis.read(buffer)) > 0) {
+                fos.write(buffer, 0, read);
+            }
+
+            System.out.println("File received successfully.");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+}

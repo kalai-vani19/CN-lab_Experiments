@@ -1,0 +1,53 @@
+// DNSServer.java
+import java.net.*;
+
+public class DNSServer {
+    public static void main(String[] args) throws Exception {
+        DatagramSocket serverSocket = new DatagramSocket(8053);
+        byte[] receiveBuffer = new byte[512];
+
+        System.out.println("DNS Server started...");
+
+        while (true) {
+            DatagramPacket receivePacket = new DatagramPacket(receiveBuffer, receiveBuffer.length);
+            serverSocket.receive(receivePacket);
+
+            String query = new String(receivePacket.getData(), 0, receivePacket.getLength());
+            System.out.println("Received query: " + query);
+
+            // Hardcoded response for example.com
+            String response = "example.com -> 93.184.216.34";
+            byte[] sendBuffer = response.getBytes();
+
+            InetAddress clientAddress = receivePacket.getAddress();
+            int clientPort = receivePacket.getPort();
+
+            DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, clientAddress, clientPort);
+            serverSocket.send(sendPacket);
+        }
+    }
+}
+
+// DNSClient.java
+import java.net.*;
+
+public class DNSClient {
+    public static void main(String[] args) throws Exception {
+        DatagramSocket clientSocket = new DatagramSocket();
+        InetAddress serverAddress = InetAddress.getByName("127.0.0.1");
+
+        String query = "example.com";
+        byte[] sendBuffer = query.getBytes();
+        DatagramPacket sendPacket = new DatagramPacket(sendBuffer, sendBuffer.length, serverAddress, 8053);
+        clientSocket.send(sendPacket);
+
+        byte[] receiveBuffer = new byte[512];
+        DatagramPacket receivePacket = new DatagramPacket(receiveBuffer, receiveBuffer.length);
+        clientSocket.receive(receivePacket);
+
+        String response = new String(receivePacket.getData(), 0, receivePacket.getLength());
+        System.out.println("Received response: " + response);
+
+        clientSocket.close();
+    }
+}

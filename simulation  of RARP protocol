@@ -1,0 +1,49 @@
+SERVER:
+import java.io.*;
+import java.net.*;
+import java.util.*;
+
+public class RarpServer {
+    private static Map<String, String> macToIpTable = Map.of(
+        "AA:BB:CC:DD:EE:01", "192.168.1.1",
+        "AA:BB:CC:DD:EE:02", "192.168.1.2"
+    );
+
+    public static void main(String[] args) throws IOException {
+        ServerSocket serverSocket = new ServerSocket(8888);
+        System.out.println("RARP Server is running...");
+
+        while (true) {
+            Socket clientSocket = serverSocket.accept();
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+
+            String mac = in.readLine();
+            System.out.println("Received RARP Request for MAC: " + mac);
+            String ip = macToIpTable.getOrDefault(mac, "IP Not Found");
+
+            out.println(ip);
+            clientSocket.close();
+        }
+    }
+}
+
+CLIENT:
+import java.io.*;
+import java.net.*;
+
+public class RarpClient {
+    public static void main(String[] args) throws IOException {
+        Socket socket = new Socket("localhost", 8888);
+        PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+        String myMacAddress = "AA:BB:CC:DD:EE:01"; // This client's MAC address
+        out.println(myMacAddress);
+
+        String ipResponse = in.readLine();
+        System.out.println("IP Address for MAC " + myMacAddress + ": " + ipResponse);
+
+        socket.close();
+    }
+}

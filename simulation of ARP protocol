@@ -1,0 +1,50 @@
+SERVER:
+import java.io.*;
+import java.net.*;
+import java.util.*;
+
+public class ArpServer {
+    private static Map<String, String> arpTable = Map.of(
+        "192.168.1.1", "AA:BB:CC:DD:EE:01",
+        "192.168.1.2", "AA:BB:CC:DD:EE:02"
+    );
+
+    public static void main(String[] args) throws IOException {
+        ServerSocket serverSocket = new ServerSocket(9999);
+        System.out.println("ARP Server is running...");
+
+        while (true) {
+            Socket clientSocket = serverSocket.accept();
+            BufferedReader in = new BufferedReader(new InputStreamReader(clientSocket.getInputStream()));
+            PrintWriter out = new PrintWriter(clientSocket.getOutputStream(), true);
+
+            String ip = in.readLine();
+            System.out.println("Received ARP Request for IP: " + ip);
+            String mac = arpTable.getOrDefault(ip, "Not Found");
+
+            out.println(mac);
+            clientSocket.close();
+        }
+    }
+}
+
+CLIENT:
+
+import java.io.*;
+import java.net.*;
+
+public class ArpClient {
+    public static void main(String[] args) throws IOException {
+        Socket socket = new Socket("localhost", 9999);
+        PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+
+        String targetIp = "192.168.1.1"; // Can be dynamic
+        out.println(targetIp);
+
+        String response = in.readLine();
+        System.out.println("MAC Address for IP " + targetIp + ": " + response);
+
+        socket.close();
+    }
+}
